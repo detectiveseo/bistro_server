@@ -24,11 +24,17 @@ const client = new MongoClient(uri, {
     try {
       await client.connect();
       const menuCollection = client.db("DB_BOSS").collection("menus");
-
+      const add_to_cartCollection = client.db("DB_BOSS").collection("addToCart")
 
       app.get("/menus", async(req, res) => {
         const menus = await menuCollection.find().toArray();
         res.send(menus);
+      })
+
+      app.post("/add-to-cart", (req, res) => {
+        const body = req.body;
+        const result = add_to_cartCollection.insertOne(body)
+        res.send(result)
       })
 
       await client.db("admin").command({ ping: 1 });
