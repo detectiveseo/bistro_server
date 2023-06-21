@@ -37,6 +37,14 @@ const client = new MongoClient(uri, {
         res.send(result)
       })
 
+     app.get("/added-items/:email", async(req, res) => {
+      const email = req.params.email;
+      const query = {email: email};
+      const result = await add_to_cartCollection.find(query).toArray();
+      res.send(result);
+     })
+    
+
       await client.db("admin").command({ ping: 1 });
       console.log("Pinged your deployment. You successfully connected to MongoDB!");
     } finally {
