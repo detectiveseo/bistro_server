@@ -8,7 +8,11 @@ const app = express();
 const port = process.env.PORT || 5000;
 
 app.use(express.json());
-app.use(cors());
+app.use(cors({
+  origin:'*', 
+  credentials:true,            //access-control-allow-credentials:true
+  optionSuccessStatus:200,
+}));
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.darcm8e.mongodb.net/?retryWrites=true&w=majority`;
 
@@ -23,8 +27,12 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     await client.connect();
+
+    // database collections 
     const menuCollection = client.db("DB_BOSS").collection("menus");
-    const add_to_cartCollection = client.db("DB_BOSS").collection("addToCart")
+    const add_to_cartCollection = client.db("DB_BOSS").collection("addToCart");
+    const mangeUsers = client.db("DB_BOSS").collection("user_manage");
+
 
     app.get("/menus", async (req, res) => {
       const menus = await menuCollection.find().toArray();
@@ -61,6 +69,13 @@ async function run() {
       const filter = { _id: new ObjectId(id) };
       const result = await add_to_cartCollection.deleteOne({});
       res.send(result);
+    })
+
+    //mange users 
+    app.post("/users", async(req, res) => {
+      const result = await menuCollection.find().toArray();
+      // const res = await mangeUsers.insertOne(req.body);
+      res.send(result)
     })
 
     await client.db("admin").command({ ping: 1 });
