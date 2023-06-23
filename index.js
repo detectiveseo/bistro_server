@@ -2,6 +2,7 @@ const express = require("express");
 const cors = require("cors");
 require('dotenv').config()
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
+const jwt = require('jsonwebtoken');
 
 
 const app = express();
@@ -23,6 +24,30 @@ const client = new MongoClient(uri, {
     deprecationErrors: true,
   }
 });
+
+//jwt Token create
+app.post('/jwt', async(req, res) => {
+  const body = req.body;
+  const token = jwt.sign(req.body, process.env.SICURE_TOKEN, {expiresIn: "1h"})
+  res.send(token);
+})
+
+
+const verifyJwt = (req, res, next) => {
+  const authorization =  req.headers.authorization;
+  console.log(authorization)
+  if(!authorization){
+    return res.status(401).send({error: true, message: 'unauthorization access'})
+  }
+  const token = authorization.split(' ')[1];
+  jwt.verify(token, process.env.SICURE_TOKEN, (err, decoded) => {
+    if(err){
+      return res.status(403).send({error: true, message: 'unauthorization access'})
+    }
+    req.decoded = decoded;
+    next();
+  })
+};
 
 async function run() {
   try {
@@ -56,13 +81,11 @@ async function run() {
       res.send(result);
     })
 
-    app.get("/total-added-food", async (req, res) => {
+    app.get("/total-added-food",  async (req, res) => {
       const email = req.query?.email;
       const result = await add_to_cartCollection.find({ email: email }).toArray();
       res.send(result);
     })
-
-
 
     app.delete("/cart/:id", async (req, res) => {
       const id = req.params.id;
